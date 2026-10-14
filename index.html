@@ -49,13 +49,14 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 
 /* 단계별 카드 색상: 카드 전체를 채움 (준비=노랑, 운동=빨강, 휴식=연두) */
 .timer-card{--phase:var(--lime);transition:background-color .35s,border-color .35s,color .35s}
-.timer-card.st-ready{--fill:#ffd23f;--ink:#211900;--ink2:#211900b3;--veil:#00000017;--veil2:#00000026}
+.timer-card.st-ready{--fill:#f2b705;--ink:#ffffff;--ink2:#ffffffe6;--veil:#0000001f;--veil2:#ffffff59}
 .timer-card.st-work{--fill:#e5484d;--ink:#ffffff;--ink2:#ffffffcc;--veil:#00000024;--veil2:#ffffff40}
-.timer-card.st-rest{--fill:#b6ef5c;--ink:#14200a;--ink2:#14200ab3;--veil:#00000017;--veil2:#00000026}
+.timer-card.st-rest{--fill:#7cc734;--ink:#ffffff;--ink2:#ffffffe6;--veil:#0000001f;--veil2:#ffffff59}
 .timer-card:is(.st-ready,.st-work,.st-rest){background:var(--fill);border-color:var(--fill);color:var(--ink);box-shadow:0 18px 44px color-mix(in srgb,var(--fill) 35%,transparent)}
 .timer-card:is(.st-ready,.st-work,.st-rest) :is(.kicker,.sub,.clock-unit,.statusline,.stat label){color:var(--ink2)}
 .timer-card:is(.st-ready,.st-work,.st-rest) :is(.statusline strong,.stat strong,.phase-name,h1,.clock){color:var(--ink)}
 .timer-card:is(.st-ready,.st-work,.st-rest) .ring .progress{stroke:var(--ink)}
+.timer-card:is(.st-ready,.st-rest){text-shadow:0 1px 2px #0000002e}.timer-card:is(.st-ready,.st-rest) .primary{text-shadow:none}
 .timer-card:is(.st-ready,.st-work,.st-rest) .ring .track{stroke:var(--veil2)}
 .timer-card:is(.st-ready,.st-work,.st-rest) .phase-tag{background:var(--veil2);color:var(--ink)}
 .timer-card:is(.st-ready,.st-work,.st-rest) .stat{background:var(--veil)}
