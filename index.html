@@ -100,6 +100,14 @@ let exercises=[
 ];
 let rounds=4,cycleRest=30,voice=true,steps=[],stepIndex=0,remaining=20,duration=20,running=false,finished=false,lastTick=0,raf=null,elapsedBefore=0,lastSpoken=null,preparing=false,prepRemaining=5;
 const CIRC=2*Math.PI*88;
+const STORE_KEY='intervalTimerSettings.v1';
+function saveSettings(){try{localStorage.setItem(STORE_KEY,JSON.stringify({exercises,rounds:safeInt($('rounds').value,1,99,4),cycleRest:safeInt($('cycleRest').value,0,3600,30),voice:$('voiceToggle').checked}))}catch(e){}}
+function loadSettings(){try{const d=JSON.parse(localStorage.getItem(STORE_KEY)||'null');if(!d)return;
+ if(Array.isArray(d.exercises)&&d.exercises.length){exercises=d.exercises.slice(0,50).map((e,i)=>({name:String(e.name||`운동 ${i+1}`).slice(0,40),work:safeInt(e.work,1,3600,20),rest:safeInt(e.rest,0,3600,10)}))}
+ if(d.rounds!=null)$('rounds').value=safeInt(d.rounds,1,99,4);
+ if(d.cycleRest!=null)$('cycleRest').value=safeInt(d.cycleRest,0,3600,30);
+ if(typeof d.voice==='boolean')$('voiceToggle').checked=d.voice;
+}catch(e){}}
 function safeInt(v,min,max,def){let n=parseInt(v,10);return Number.isFinite(n)?Math.min(max,Math.max(min,n)):def}
 function format(s){s=Math.max(0,Math.ceil(s));return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0")}
 function esc(s){return String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
@@ -107,10 +115,11 @@ function renderExercises(){
  $('exerciseList').innerHTML=exercises.map((e,i)=>`<div class="exercise" data-i="${i}"><div class="num">${i+1}</div><input class="exname" aria-label="운동 이름 ${i+1}" value="${esc(e.name)}" maxlength="40"><input class="seconds exwork" aria-label="운동 시간 초" type="number" min="1" max="3600" value="${e.work}" title="운동 시간(초)"><button class="remove" aria-label="운동 삭제" title="운동 삭제" ${exercises.length===1?'disabled':''}>×</button><div style="grid-column:2 / 5;display:flex;align-items:center;gap:8px;color:var(--muted);font-size:11px"><span>다음 운동 전 휴식</span><input class="seconds exrest" aria-label="운동 후 휴식 초" type="number" min="0" max="3600" value="${e.rest}" style="width:72px;padding:6px"><span>초</span></div></div>`).join('');
  $('exerciseList').querySelectorAll('.exercise').forEach(row=>{
   const i=+row.dataset.i;
-  row.querySelector('.exname').addEventListener('change',e=>{exercises[i].name=e.target.value.trim()||`운동 ${i+1}`;refreshPlanIfIdle()});
-  row.querySelector('.exwork').addEventListener('change',e=>{exercises[i].work=safeInt(e.target.value,1,3600,20);e.target.value=exercises[i].work;refreshPlanIfIdle()});
-  row.querySelector('.exrest').addEventListener('change',e=>{exercises[i].rest=safeInt(e.target.value,0,3600,10);e.target.value=exercises[i].rest;refreshPlanIfIdle()});
-  row.querySelector('.remove').addEventListener('click',()=>{if(exercises.length>1){exercises.splice(i,1);renderExercises();refreshPlanIfIdle()}});
+  row.querySelector('.exname').addEventListener('input',e=>{exercises[i].name=e.target.value.trim()||`운동 ${i+1}`;saveSettings()});
+  row.querySelector('.exname').addEventListener('change',e=>{exercises[i].name=e.target.value.trim()||`운동 ${i+1}`;saveSettings();refreshPlanIfIdle()});
+  row.querySelector('.exwork').addEventListener('change',e=>{exercises[i].work=safeInt(e.target.value,1,3600,20);e.target.value=exercises[i].work;saveSettings();refreshPlanIfIdle()});
+  row.querySelector('.exrest').addEventListener('change',e=>{exercises[i].rest=safeInt(e.target.value,0,3600,10);e.target.value=exercises[i].rest;saveSettings();refreshPlanIfIdle()});
+  row.querySelector('.remove').addEventListener('click',()=>{if(exercises.length>1){exercises.splice(i,1);renderExercises();saveSettings();refreshPlanIfIdle()}});
  });
 }
 function buildSteps(){
@@ -211,16 +220,16 @@ function refreshPlanIfIdle(){if(running)return;reset()}
 $('startBtn').addEventListener('click',startPause);
 $('resetBtn').addEventListener('click',reset);
 $('skipBtn').addEventListener('click',()=>{if(finished)return;if(running){cancelAnimationFrame(raf);lastTick=0}beginStep(stepIndex+1,true);if(running)raf=requestAnimationFrame(tick)});
-$('addBtn').addEventListener('click',()=>{exercises.push({name:`운동 ${exercises.length+1}`,work:20,rest:10});renderExercises();refreshPlanIfIdle()});
-$('rounds').addEventListener('change',refreshPlanIfIdle);$('cycleRest').addEventListener('change',refreshPlanIfIdle);
-$('voiceToggle').addEventListener('change',()=>{voice=$('voiceToggle').checked;if(!voice&&'speechSynthesis'in window)speechSynthesis.cancel()});
-$('exampleBtn').addEventListener('click',()=>{if(running){running=false;cancelAnimationFrame(raf)}exercises=[{name:'허리 운동',work:20,rest:10},{name:'허벅지 운동',work:20,rest:10},{name:'어깨 운동',work:20,rest:10}];$('rounds').value=4;$('cycleRest').value=30;renderExercises();reset()});
+$('addBtn').addEventListener('click',()=>{exercises.push({name:`운동 ${exercises.length+1}`,work:20,rest:10});renderExercises();saveSettings();refreshPlanIfIdle()});
+$('rounds').addEventListener('change',()=>{saveSettings();refreshPlanIfIdle()});$('cycleRest').addEventListener('change',()=>{saveSettings();refreshPlanIfIdle()});
+$('voiceToggle').addEventListener('change',()=>{voice=$('voiceToggle').checked;saveSettings();if(!voice&&'speechSynthesis'in window)speechSynthesis.cancel()});
+$('exampleBtn').addEventListener('click',()=>{if(running){running=false;cancelAnimationFrame(raf)}exercises=[{name:'허리 운동',work:20,rest:10},{name:'허벅지 운동',work:20,rest:10},{name:'어깨 운동',work:20,rest:10}];$('rounds').value=4;$('cycleRest').value=30;renderExercises();saveSettings();reset()});
 let routineOpenedHere=false;
 function showView(){const r=location.hash==='#routine';$('routineView').hidden=!r;$('homeView').hidden=r;window.scrollTo(0,0);if(r){render();const a=$('planList').querySelector('.active');if(a)a.scrollIntoView({block:'center'})}}
 $('openRoutine').addEventListener('click',()=>{routineOpenedHere=true;location.hash='routine'});
 $('backBtn').addEventListener('click',()=>{if(routineOpenedHere){routineOpenedHere=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search);showView()}});
 window.addEventListener('hashchange',showView);
-renderExercises();reset();showView();
+loadSettings();renderExercises();reset();showView();
 const SHARE_URL=location.origin+location.pathname;
 async function shareApp(){
  const msg=$('shareMsg');msg.textContent='';
