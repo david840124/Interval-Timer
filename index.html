@@ -40,12 +40,12 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 @media(max-width:760px){.plan-card{order:3}}
 @media(min-width:761px){.config-card{grid-column:2;grid-row:1}.timer-card{grid-column:1;grid-row:1}.plan-card{grid-column:1 / span 2;grid-row:2}}
 .plan-card{padding:0;overflow:hidden}.plan-link{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:transparent;color:var(--text);padding:18px 22px;text-align:left}.plan-link strong{display:block;font-size:18px;margin-top:6px}.plan-link:hover{background:#ffffff06}.plan-link:focus-visible,.back-btn:focus-visible{outline:2px solid var(--lime);outline-offset:-4px;border-radius:24px}.plan-meta{display:flex;align-items:center;gap:10px}.chev{color:var(--muted);font-size:22px;line-height:1}
+.share-wrap{display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:26px}.share-btn{display:inline-flex;align-items:center;justify-content:center;gap:9px;width:100%;max-width:420px;background:var(--panel2);border:1px solid #3a4454;color:var(--text);border-radius:14px;padding:15px 18px;font-weight:800}.share-btn:hover{border-color:var(--lime)}.share-btn:focus-visible{outline:2px solid var(--lime);outline-offset:2px}.share-btn svg{width:18px;height:18px;stroke:var(--lime)}.share-msg{min-height:16px;font-size:12px;color:var(--lime);text-align:center}.share-url{font-size:12px;color:var(--muted);user-select:all;word-break:break-all;text-align:center}
 .topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.app-title{display:flex;align-items:center;gap:10px;margin:0;font-size:20px;font-weight:850;letter-spacing:-.03em}.app-title img{width:30px;height:30px;border-radius:8px}
 .routine-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.back-btn{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:12px;font-size:22px}.routine-head h2{margin:4px 0 0;font-size:22px;letter-spacing:-.03em}
 .routine-now{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#c8fa650d;border:1px solid #c8fa6566;border-radius:16px;padding:14px 16px;margin-bottom:12px}.routine-now span{color:var(--muted);font-size:12px}.routine-now strong{display:block;font-size:16px;margin-top:4px}.routine-now .now-clock{font-size:26px;font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
 .routine-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}.routine-view{max-width:720px;margin:0 auto}
-.app{padding-top:calc(16px + env(safe-area-inset-top, 0px));padding-bottom:calc(32px + env(safe-area-inset-bottom, 0px));padding-left:max(13px, env(safe-area-inset-left, 0px));padding-right:max(13px, env(safe-area-inset-right, 0px))}
-.app{padding-top:calc(16px + env(safe-area-inset-top, 0px));padding-bottom:calc(32px + env(safe-area-inset-bottom, 0px));padding-left:max(13px, env(safe-area-inset-left, 0px));padding-right:max(13px, env(safe-area-inset-right, 0px))}
+.app{padding-top:calc(30px + env(safe-area-inset-top, 0px));padding-bottom:calc(32px + env(safe-area-inset-bottom, 0px));padding-left:max(13px, env(safe-area-inset-left, 0px));padding-right:max(13px, env(safe-area-inset-right, 0px))}
 </style>
 </head>
 <body>
@@ -81,6 +81,7 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 <button class="plan-link" id="openRoutine"><span><span class="kicker">SESSION FLOW</span><strong>오늘의 루틴</strong></span><span class="plan-meta"><span class="pill" id="stepCount">12 단계</span><span class="chev" aria-hidden="true">›</span></span></button>
 </section>
 </div>
+<div class="share-wrap"><button class="share-btn" id="shareBtn"><svg viewBox="0 0 24 24" fill="none" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><path d="M8.6 13.5l6.8 4M15.4 6.5l-6.8 4"/></svg>친구에게 공유하기</button><div class="share-msg" id="shareMsg" role="status" aria-live="polite"></div></div>
 <footer>화면이 잠기거나 다른 앱으로 전환되면 기기·브라우저에 따라 타이머 및 음성이 제한될 수 있어요.<br>운동 중에는 안전한 자세와 본인의 컨디션을 우선해 주세요.</footer>
 </div>
 <section class="routine-view" id="routineView" hidden>
@@ -220,6 +221,16 @@ $('openRoutine').addEventListener('click',()=>{routineOpenedHere=true;location.h
 $('backBtn').addEventListener('click',()=>{if(routineOpenedHere){routineOpenedHere=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search);showView()}});
 window.addEventListener('hashchange',showView);
 renderExercises();reset();showView();
+const SHARE_URL=location.origin+location.pathname;
+async function shareApp(){
+ const msg=$('shareMsg');msg.textContent='';
+ const data={title:'인터벌 타이머',text:'운동·휴식 시간과 반복 횟수를 설정하는 무료 인터벌 운동 타이머예요. 같이 써봐요!',url:SHARE_URL};
+ if(navigator.share){try{await navigator.share(data);return}catch(e){if(e&&e.name==='AbortError')return}}
+ try{await navigator.clipboard.writeText(SHARE_URL);msg.textContent='링크를 복사했어요. 메신저에 붙여넣어 보내 주세요.'}
+ catch(e){msg.innerHTML='아래 링크를 길게 눌러 복사해 주세요.<div class="share-url">'+esc(SHARE_URL)+'</div>'}
+ setTimeout(()=>{if(!msg.querySelector('.share-url'))msg.textContent=''},4000);
+}
+$('shareBtn').addEventListener('click',shareApp);
 
 let wakeLock=null;
 async function keepAwake(on){try{if(on&&'wakeLock'in navigator&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}else if(!on&&wakeLock){await wakeLock.release();wakeLock=null}}catch(e){}}
