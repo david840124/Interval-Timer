@@ -47,15 +47,22 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 .routine-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}.routine-view{max-width:720px;margin:0 auto}
 .app{padding-top:calc(30px + env(safe-area-inset-top, 0px));padding-bottom:calc(32px + env(safe-area-inset-bottom, 0px));padding-left:max(13px, env(safe-area-inset-left, 0px));padding-right:max(13px, env(safe-area-inset-right, 0px))}
 
-/* 단계별 카드 색상: 준비=노랑, 운동=빨강, 휴식=연두 */
-.timer-card{--phase:var(--lime);transition:background .35s,border-color .35s}
-.timer-card.st-ready{--phase:#ffd23f;background:linear-gradient(165deg,#ffd23f40 0%,#ffd23f14 45%,rgba(25,30,40,.94) 100%);border-color:#ffd23f99}
-.timer-card.st-work{--phase:#ff5a5f;background:linear-gradient(165deg,#ff5a5f47 0%,#ff5a5f17 45%,rgba(25,30,40,.94) 100%);border-color:#ff5a5fa6}
-.timer-card.st-rest{--phase:#c8fa65;background:linear-gradient(165deg,#c8fa6538 0%,#c8fa6512 45%,rgba(25,30,40,.94) 100%);border-color:#c8fa6599}
-.timer-card .ring .progress{stroke:var(--phase)}.timer-card .phase-tag{background:color-mix(in srgb,var(--phase) 18%,transparent);color:var(--phase)}
-.timer-card:not(.st-idle) .ring .track{stroke:color-mix(in srgb,var(--phase) 22%,#303847)}
+/* 단계별 카드 색상: 카드 전체를 채움 (준비=노랑, 운동=빨강, 휴식=연두) */
+.timer-card{--phase:var(--lime);transition:background-color .35s,border-color .35s,color .35s}
+.timer-card.st-ready{--fill:#ffd23f;--ink:#211900;--ink2:#211900b3;--veil:#00000017;--veil2:#00000026}
+.timer-card.st-work{--fill:#e5484d;--ink:#ffffff;--ink2:#ffffffcc;--veil:#00000024;--veil2:#ffffff40}
+.timer-card.st-rest{--fill:#b6ef5c;--ink:#14200a;--ink2:#14200ab3;--veil:#00000017;--veil2:#00000026}
+.timer-card:is(.st-ready,.st-work,.st-rest){background:var(--fill);border-color:var(--fill);color:var(--ink);box-shadow:0 18px 44px color-mix(in srgb,var(--fill) 35%,transparent)}
+.timer-card:is(.st-ready,.st-work,.st-rest) :is(.kicker,.sub,.clock-unit,.statusline,.stat label){color:var(--ink2)}
+.timer-card:is(.st-ready,.st-work,.st-rest) :is(.statusline strong,.stat strong,.phase-name,h1,.clock){color:var(--ink)}
+.timer-card:is(.st-ready,.st-work,.st-rest) .ring .progress{stroke:var(--ink)}
+.timer-card:is(.st-ready,.st-work,.st-rest) .ring .track{stroke:var(--veil2)}
+.timer-card:is(.st-ready,.st-work,.st-rest) .phase-tag{background:var(--veil2);color:var(--ink)}
+.timer-card:is(.st-ready,.st-work,.st-rest) .stat{background:var(--veil)}
+.timer-card:is(.st-ready,.st-work,.st-rest) :is(.secondary,.iconbtn){background:var(--veil);border:1px solid var(--veil2);color:var(--ink)}
+.timer-card:is(.st-ready,.st-work,.st-rest) .primary{background:var(--ink);color:var(--fill)}
 #heroTitle{transition:font-size .2s}.timer-card:not(.st-idle) #heroTitle{font-size:clamp(34px,9.5vw,50px);margin-top:12px}
-.timer-card:not(.st-idle) #heroSub{color:var(--text);opacity:.8;font-size:15px}
+.timer-card:not(.st-idle) #heroSub{font-size:15px}
 .clock{font-size:clamp(78px,21vw,108px)!important}.clock-wrap{width:min(80vw,340px)!important;max-width:340px}.clock-unit{font-size:13px}
 @media (prefers-reduced-motion:reduce){.timer-card,#heroTitle{transition:none}}
 </style>
