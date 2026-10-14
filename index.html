@@ -200,11 +200,27 @@ function render(){
  renderPlan();
 }
 function speak(text){if(!voice||!('speechSynthesis'in window))return;try{speechSynthesis.cancel();const u=new SpeechSynthesisUtterance(text);u.lang='ko-KR';u.rate=1.05;speechSynthesis.speak(u)}catch(e){}}
+let speakTimer=null;
+function speakAfter(text,ms){clearTimeout(speakTimer);speakTimer=setTimeout(()=>speak(text),ms)}
+let audioCtx=null;
+function unlockAudio(){try{audioCtx=audioCtx||new (window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();
+ const b=audioCtx.createBuffer(1,1,22050),src=audioCtx.createBufferSource();src.buffer=b;src.connect(audioCtx.destination);src.start(0)}catch(e){}}
+// 호루라기: 고음 + 빠른 떨림(트릴) + 바람소리
+function whistle(long=false){if(!voice||!audioCtx)return;try{
+ const t=audioCtx.currentTime+0.02,len=long?1.1:0.55,out=audioCtx.createGain();
+ out.gain.setValueAtTime(0,t);out.gain.linearRampToValueAtTime(0.32,t+0.03);out.gain.setValueAtTime(0.32,t+len-0.08);out.gain.linearRampToValueAtTime(0,t+len);out.connect(audioCtx.destination);
+ const osc=audioCtx.createOscillator();osc.type='triangle';osc.frequency.setValueAtTime(2750,t);osc.frequency.linearRampToValueAtTime(2900,t+0.08);
+ const lfo=audioCtx.createOscillator(),depth=audioCtx.createGain();lfo.type='square';lfo.frequency.value=32;depth.gain.value=170;lfo.connect(depth);depth.connect(osc.frequency);
+ const tone=audioCtx.createGain();tone.gain.value=0.9;osc.connect(tone);tone.connect(out);
+ const n=audioCtx.createBuffer(1,Math.ceil(audioCtx.sampleRate*len),audioCtx.sampleRate),d=n.getChannelData(0);for(let i=0;i<d.length;i++)d[i]=Math.random()*2-1;
+ const ns=audioCtx.createBufferSource();ns.buffer=n;const bp=audioCtx.createBiquadFilter();bp.type='bandpass';bp.frequency.value=2900;bp.Q.value=4;const ng=audioCtx.createGain();ng.gain.value=0.25;ns.connect(bp);bp.connect(ng);ng.connect(out);
+ osc.start(t);lfo.start(t);ns.start(t);osc.stop(t+len);lfo.stop(t+len);ns.stop(t+len);
+}catch(e){}}
 function labelFor(s){return s.type==='work'?s.name:(s.type==='rest'?'휴식':'사이클 휴식')}
-function beginStep(index,announce=true){
- if(index>=steps.length){finished=true;running=false;remaining=0;duration=0;if(announce)speak('운동 종료. 수고하셨습니다.');render();return}
+function beginStep(index,announce=true,blow=false){
+ if(index>=steps.length){finished=true;running=false;remaining=0;duration=0;if(blow)whistle(true);if(announce)(blow?speakAfter('운동 종료. 수고하셨습니다.',1200):speak('운동 종료. 수고하셨습니다.'));render();return}
  stepIndex=index;duration=steps[index].secs;remaining=duration;lastSpoken=null;
- if(announce)speak(labelFor(steps[index])+' 시작');
+ if(blow)whistle();if(announce)(blow?speakAfter(labelFor(steps[index])+' 시작',650):speak(labelFor(steps[index])+' 시작'));
  render();
 }
 function tick(now){
@@ -215,7 +231,7 @@ function tick(now){
   const beforePrep=Math.ceil(prepRemaining);prepRemaining=Math.max(0,prepRemaining-delta);
   const afterPrep=Math.ceil(prepRemaining);
   if(voice && afterPrep>=1 && afterPrep<=3 && afterPrep!==beforePrep && lastSpoken!==afterPrep){speak(String(afterPrep));lastSpoken=afterPrep}
-  if(prepRemaining<=0){preparing=false;beginStep(0,true);lastTick=now}
+  if(prepRemaining<=0){preparing=false;beginStep(0,true,true);lastTick=now}
   render();
   if(running)raf=requestAnimationFrame(tick);
   return;
@@ -224,27 +240,28 @@ function tick(now){
  const after=Math.ceil(remaining);
  if(voice && after>=1 && after<=3 && after!==before && lastSpoken!==after){speak(String(after));lastSpoken=after}
  if(remaining<=0){
-  if(stepIndex+1<steps.length){const old=steps[stepIndex];beginStep(stepIndex+1,true)}
-  else{running=false;finished=true;remaining=0;speak('운동 종료. 수고하셨습니다.')}
+  if(stepIndex+1<steps.length){beginStep(stepIndex+1,true,true)}
+  else{running=false;finished=true;remaining=0;whistle(true);speakAfter('운동 종료. 수고하셨습니다.',1200)}
  }
  render();
  if(running)raf=requestAnimationFrame(tick);
 }
 function startPause(){
+ unlockAudio();
  if(finished){reset();startPause();return}
  if(running){
   running=false;cancelAnimationFrame(raf);lastTick=0;
-  if('speechSynthesis'in window)speechSynthesis.cancel();
+  clearTimeout(speakTimer);if('speechSynthesis'in window)speechSynthesis.cancel();
   render();return;
  }
  running=true;lastTick=0;
  if(stepIndex===0 && remaining===duration && !preparing){
   preparing=true;prepRemaining=5;lastSpoken=null;
-  speak('운동 준비. 5초 후 시작합니다.');
+  speak('운동 준비');
  }
  render();raf=requestAnimationFrame(tick);
 }
-function reset(){running=false;finished=false;preparing=false;prepRemaining=5;cancelAnimationFrame(raf);if('speechSynthesis'in window)speechSynthesis.cancel();buildSteps();stepIndex=0;duration=steps[0]?.secs||20;remaining=duration;lastTick=0;render()}
+function reset(){clearTimeout(speakTimer);running=false;finished=false;preparing=false;prepRemaining=5;cancelAnimationFrame(raf);if('speechSynthesis'in window)speechSynthesis.cancel();buildSteps();stepIndex=0;duration=steps[0]?.secs||20;remaining=duration;lastTick=0;render()}
 function refreshPlanIfIdle(){if(running)return;reset()}
 $('startBtn').addEventListener('click',startPause);
 $('resetBtn').addEventListener('click',reset);
