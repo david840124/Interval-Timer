@@ -1,5 +1,5 @@
 // 오프라인 실행용 서비스 워커. 파일을 수정해 다시 올릴 때는 아래 버전 숫자를 올려 주세요.
-const CACHE = 'interval-timer-v1';
+const CACHE = 'interval-timer-v2';
 const FILES = ['./', './index.html', './manifest.json', './icon.svg', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {

@@ -39,12 +39,19 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 @media(max-width:760px){.app{padding:17px 13px 32px}.layout{grid-template-columns:1fr}.timer-card{min-height:440px}.timer-card,.config-card{padding:19px}.clock-wrap{width:min(67vw,260px)}.controls{padding-top:18px}.summary{margin-top:16px}.config-card{order:2}.timer-card{order:1}}
 @media(max-width:760px){.plan-card{order:3}}
 @media(min-width:761px){.config-card{grid-column:2;grid-row:1}.timer-card{grid-column:1;grid-row:1}.plan-card{grid-column:1 / span 2;grid-row:2}}
-.plan-card{padding:0;overflow:hidden}.plan-toggle{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:transparent;color:var(--text);padding:18px 22px;text-align:left}.plan-toggle strong{display:block;font-size:18px;margin-top:6px}.plan-toggle:focus-visible{outline:2px solid var(--lime);outline-offset:-4px;border-radius:24px}.plan-meta{display:flex;align-items:center;gap:10px}.chev{color:var(--muted);font-size:16px;transition:transform .2s}.plan-toggle[aria-expanded="true"] .chev{transform:rotate(180deg)}.plan-card .plan-list{padding:0 22px 22px}
+.plan-card{padding:0;overflow:hidden}.plan-link{width:100%;display:flex;align-items:center;justify-content:space-between;gap:12px;background:transparent;color:var(--text);padding:18px 22px;text-align:left}.plan-link strong{display:block;font-size:18px;margin-top:6px}.plan-link:hover{background:#ffffff06}.plan-link:focus-visible,.back-btn:focus-visible{outline:2px solid var(--lime);outline-offset:-4px;border-radius:24px}.plan-meta{display:flex;align-items:center;gap:10px}.chev{color:var(--muted);font-size:22px;line-height:1}
+.topbar{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}.app-title{display:flex;align-items:center;gap:10px;margin:0;font-size:20px;font-weight:850;letter-spacing:-.03em}.app-title img{width:30px;height:30px;border-radius:8px}
+.routine-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.back-btn{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:12px;font-size:22px}.routine-head h2{margin:4px 0 0;font-size:22px;letter-spacing:-.03em}
+.routine-now{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#c8fa650d;border:1px solid #c8fa6566;border-radius:16px;padding:14px 16px;margin-bottom:12px}.routine-now span{color:var(--muted);font-size:12px}.routine-now strong{display:block;font-size:16px;margin-top:4px}.routine-now .now-clock{font-size:26px;font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
+.routine-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}.routine-view{max-width:720px;margin:0 auto}
+.app{padding-top:16px}
 .app{padding-top:16px}
 </style>
 </head>
 <body>
 <div class="app">
+<header class="topbar"><h1 class="app-title"><img src="./icon-192.png" alt="">인터벌 타이머</h1><div class="pill">INTERVAL LAB</div></header>
+<div id="homeView">
 <div class="layout">
 <section class="card timer-card">
 <div class="kicker">YOUR TRAINING SESSION</div>
@@ -71,11 +78,17 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 <div class="voice-row"><div><strong>음성 카운트다운</strong><small>단계 종료 3초 전부터 “3, 2, 1” 안내<br>단계 시작·종료 시 음성 안내</small></div><label class="switch"><input id="voiceToggle" type="checkbox" checked><span class="slider"></span></label></div>
 </section>
 <section class="card plan-card">
-<button class="plan-toggle" id="planToggle" aria-expanded="false" aria-controls="planList"><span><span class="kicker">SESSION FLOW</span><strong>오늘의 루틴</strong></span><span class="plan-meta"><span class="pill" id="stepCount">12 단계</span><span class="chev" aria-hidden="true">▾</span></span></button>
-<div class="plan-list" id="planList" hidden></div>
+<button class="plan-link" id="openRoutine"><span><span class="kicker">SESSION FLOW</span><strong>오늘의 루틴</strong></span><span class="plan-meta"><span class="pill" id="stepCount">12 단계</span><span class="chev" aria-hidden="true">›</span></span></button>
 </section>
 </div>
 <footer>화면이 잠기거나 다른 앱으로 전환되면 기기·브라우저에 따라 타이머 및 음성이 제한될 수 있어요.<br>운동 중에는 안전한 자세와 본인의 컨디션을 우선해 주세요.</footer>
+</div>
+<section class="routine-view" id="routineView" hidden>
+<div class="routine-head"><button class="back-btn" id="backBtn" aria-label="타이머로 돌아가기" title="타이머로 돌아가기">‹</button><div><div class="kicker">SESSION FLOW</div><h2>오늘의 루틴</h2></div></div>
+<div class="routine-now"><div><span id="nowLabel">현재 단계</span><strong id="nowName">준비 완료</strong></div><div class="now-clock" id="nowClock">00:20</div></div>
+<div class="routine-stats"><div class="stat"><label>전체 단계</label><strong id="rStepCount">12</strong></div><div class="stat"><label>사이클</label><strong id="rCycle">1 / 4</strong></div><div class="stat"><label>총 운동 시간</label><strong id="rTotal">06:00</strong></div></div>
+<div class="plan-list" id="planList"></div>
+</section>
 </div>
 <script>
 const $=id=>document.getElementById(id);
@@ -118,6 +131,8 @@ function renderPlan(){
  const list=$('planList');
  list.innerHTML=steps.map((s,i)=>`<div class="plan-row ${i===stepIndex&&!finished?'active':''} ${i<stepIndex?'done':''}"><span class="dot"></span><span>${s.type==='work'?esc(s.name):s.type==='rest'?'짧은 휴식':'사이클 휴식'}</span><span class="rowtime">${s.secs}초</span><span style="min-width:28px;text-align:right">${s.round}/${rounds}</span></div>`).join('');
  $('stepCount').textContent=`${steps.length} 단계`;
+ $('rStepCount').textContent=steps.length;$('rTotal').textContent=format(totalDuration());$('rCycle').textContent=$('cycleStat').textContent;
+ $('nowName').textContent=$('phaseName').textContent;$('nowClock').textContent=$('clock').textContent;$('nowLabel').textContent=finished?'운동 완료':(running||preparing?'진행 중':'현재 단계');
 }
 function remainingTotal(){return steps.slice(stepIndex).reduce((a,s)=>a+s.secs,0)-(duration-remaining)}
 function render(){
@@ -199,8 +214,12 @@ $('addBtn').addEventListener('click',()=>{exercises.push({name:`운동 ${exercis
 $('rounds').addEventListener('change',refreshPlanIfIdle);$('cycleRest').addEventListener('change',refreshPlanIfIdle);
 $('voiceToggle').addEventListener('change',()=>{voice=$('voiceToggle').checked;if(!voice&&'speechSynthesis'in window)speechSynthesis.cancel()});
 $('exampleBtn').addEventListener('click',()=>{if(running){running=false;cancelAnimationFrame(raf)}exercises=[{name:'허리 운동',work:20,rest:10},{name:'허벅지 운동',work:20,rest:10},{name:'어깨 운동',work:20,rest:10}];$('rounds').value=4;$('cycleRest').value=30;renderExercises();reset()});
-$('planToggle').addEventListener('click',()=>{const open=$('planToggle').getAttribute('aria-expanded')!=='true';$('planToggle').setAttribute('aria-expanded',String(open));$('planList').hidden=!open});
-renderExercises();reset();
+let routineOpenedHere=false;
+function showView(){const r=location.hash==='#routine';$('routineView').hidden=!r;$('homeView').hidden=r;window.scrollTo(0,0);if(r){render();const a=$('planList').querySelector('.active');if(a)a.scrollIntoView({block:'center'})}}
+$('openRoutine').addEventListener('click',()=>{routineOpenedHere=true;location.hash='routine'});
+$('backBtn').addEventListener('click',()=>{if(routineOpenedHere){routineOpenedHere=false;history.back()}else{history.replaceState(null,'',location.pathname+location.search);showView()}});
+window.addEventListener('hashchange',showView);
+renderExercises();reset();showView();
 
 let wakeLock=null;
 async function keepAwake(on){try{if(on&&'wakeLock'in navigator&&!wakeLock){wakeLock=await navigator.wakeLock.request('screen');wakeLock.addEventListener('release',()=>{wakeLock=null})}else if(!on&&wakeLock){await wakeLock.release();wakeLock=null}}catch(e){}}
