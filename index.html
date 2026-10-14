@@ -46,6 +46,18 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 .routine-now{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#c8fa650d;border:1px solid #c8fa6566;border-radius:16px;padding:14px 16px;margin-bottom:12px}.routine-now span{color:var(--muted);font-size:12px}.routine-now strong{display:block;font-size:16px;margin-top:4px}.routine-now .now-clock{font-size:26px;font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
 .routine-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}.routine-view{max-width:720px;margin:0 auto}
 .app{padding-top:calc(30px + env(safe-area-inset-top, 0px));padding-bottom:calc(32px + env(safe-area-inset-bottom, 0px));padding-left:max(13px, env(safe-area-inset-left, 0px));padding-right:max(13px, env(safe-area-inset-right, 0px))}
+
+/* 단계별 카드 색상: 준비=노랑, 운동=빨강, 휴식=연두 */
+.timer-card{--phase:var(--lime);transition:background .35s,border-color .35s}
+.timer-card.st-ready{--phase:#ffd23f;background:linear-gradient(165deg,#ffd23f40 0%,#ffd23f14 45%,rgba(25,30,40,.94) 100%);border-color:#ffd23f99}
+.timer-card.st-work{--phase:#ff5a5f;background:linear-gradient(165deg,#ff5a5f47 0%,#ff5a5f17 45%,rgba(25,30,40,.94) 100%);border-color:#ff5a5fa6}
+.timer-card.st-rest{--phase:#c8fa65;background:linear-gradient(165deg,#c8fa6538 0%,#c8fa6512 45%,rgba(25,30,40,.94) 100%);border-color:#c8fa6599}
+.timer-card .ring .progress{stroke:var(--phase)}.timer-card .phase-tag{background:color-mix(in srgb,var(--phase) 18%,transparent);color:var(--phase)}
+.timer-card:not(.st-idle) .ring .track{stroke:color-mix(in srgb,var(--phase) 22%,#303847)}
+#heroTitle{transition:font-size .2s}.timer-card:not(.st-idle) #heroTitle{font-size:clamp(34px,9.5vw,50px);margin-top:12px}
+.timer-card:not(.st-idle) #heroSub{color:var(--text);opacity:.8;font-size:15px}
+.clock{font-size:clamp(78px,21vw,108px)!important}.clock-wrap{width:min(80vw,340px)!important;max-width:340px}.clock-unit{font-size:13px}
+@media (prefers-reduced-motion:reduce){.timer-card,#heroTitle{transition:none}}
 </style>
 </head>
 <body>
@@ -53,10 +65,10 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 <header class="topbar"><h1 class="app-title"><img src="./icon-192.png" alt="">인터벌 타이머</h1><div class="pill">INTERVAL LAB</div></header>
 <div id="homeView">
 <div class="layout">
-<section class="card timer-card">
+<section class="card timer-card st-idle" id="timerCard">
 <div class="kicker">YOUR TRAINING SESSION</div>
-<h1>움직임에 집중하세요.</h1>
-<p class="sub">운동과 휴식의 리듬은 타이머가 챙길게요.</p>
+<h1 id="heroTitle">움직임에 집중하세요.</h1>
+<p class="sub" id="heroSub">운동과 휴식의 리듬은 타이머가 챙길게요.</p>
 <div class="phase"><div class="phase-name" id="phaseName">준비 완료</div><div class="phase-tag" id="phaseTag">READY</div></div>
 <div class="clock-wrap">
 <svg class="ring" viewBox="0 0 200 200" aria-hidden="true"><circle class="track" cx="100" cy="100" r="88"/><circle class="progress" id="progressRing" cx="100" cy="100" r="88" stroke-dasharray="552.92" stroke-dashoffset="0"/></svg>
@@ -142,12 +154,14 @@ function renderPlan(){
  list.innerHTML=steps.map((s,i)=>`<div class="plan-row ${i===stepIndex&&!finished?'active':''} ${i<stepIndex?'done':''}"><span class="dot"></span><span>${s.type==='work'?esc(s.name):s.type==='rest'?'짧은 휴식':'사이클 휴식'}</span><span class="rowtime">${s.secs}초</span><span style="min-width:28px;text-align:right">${s.round}/${rounds}</span></div>`).join('');
  $('stepCount').textContent=`${steps.length} 단계`;
  $('rStepCount').textContent=steps.length;$('rTotal').textContent=format(totalDuration());$('rCycle').textContent=$('cycleStat').textContent;
- $('nowName').textContent=$('phaseName').textContent;$('nowClock').textContent=$('clock').textContent;$('nowLabel').textContent=finished?'운동 완료':(running||preparing?'진행 중':'현재 단계');
+ $('nowName').textContent=$('heroTitle').textContent;$('nowClock').textContent=$('clock').textContent;$('nowLabel').textContent=finished?'운동 완료':(running||preparing?'진행 중':'현재 단계');
 }
 function remainingTotal(){return steps.slice(stepIndex).reduce((a,s)=>a+s.secs,0)-(duration-remaining)}
+function setHero(state,title,sub){const c=$('timerCard');c.classList.remove('st-idle','st-ready','st-work','st-rest','st-done');c.classList.add('st-'+state);$('heroTitle').textContent=title;$('heroSub').textContent=sub}
+function nextWorkName(from){const n=steps.slice(from).find(x=>x.type==='work');return n?n.name:null}
 function render(){
  if(preparing){
-  $('phaseName').textContent='운동 준비';$('phaseTag').textContent='GET READY';
+  setHero('ready','운동 준비',`첫 운동 · ${steps[0]?steps[0].name:''}`);$('phaseName').textContent='곧 시작합니다';$('phaseTag').textContent='GET READY';
   $('clock').textContent='00:'+String(Math.ceil(prepRemaining)).padStart(2,'0');$('clockUnit').textContent='STARTING IN';
   $('statusLine').innerHTML=running?'<strong>자세를 잡으세요.</strong> 운동은 5초 후 시작됩니다.':'<strong>일시정지됨.</strong> 계속하기를 누르면 카운트다운을 이어갑니다.';
   $('progressRing').style.strokeDashoffset=CIRC*(1-Math.max(0,prepRemaining)/5);
@@ -155,13 +169,17 @@ function render(){
   $('startBtn').textContent=running?'Ⅱ 일시정지':'▶ 계속하기';$('startBtn').className='btn '+(running?'secondary':'primary');return;
  }
  const s=currentStep();
- if(finished){$('phaseName').textContent='운동 완료!';$('phaseTag').textContent='COMPLETE';$('clock').textContent='00:00';$('clockUnit').textContent='SESSION FINISHED';$('statusLine').innerHTML='<strong>멋져요!</strong> 오늘의 루틴을 모두 마쳤습니다.';$('progressRing').style.strokeDashoffset=CIRC;$('progressStat').textContent='100%';$('cycleStat').textContent=`${rounds} / ${rounds}`;$('startBtn').textContent='▶ 다시 시작';$('startBtn').className='btn primary';renderPlan();return}
+ if(finished){setHero('done','운동 완료!','오늘의 루틴을 모두 마쳤습니다.');$('phaseName').textContent='수고하셨어요';$('phaseTag').textContent='COMPLETE';$('clock').textContent='00:00';$('clockUnit').textContent='SESSION FINISHED';$('statusLine').innerHTML='<strong>멋져요!</strong> 오늘의 루틴을 모두 마쳤습니다.';$('progressRing').style.strokeDashoffset=CIRC;$('progressStat').textContent='100%';$('cycleStat').textContent=`${rounds} / ${rounds}`;$('startBtn').textContent='▶ 다시 시작';$('startBtn').className='btn primary';renderPlan();return}
  if(!s)return;
- $('phaseName').textContent=s.type==='work'?s.name:(s.type==='rest'?'잠깐 쉬어가세요':'사이클 완료 · 긴 휴식');
- $('phaseTag').textContent=s.type==='work'?'WORK':(s.type==='rest'?'REST':'CYCLE REST');
+ const idle=!running&&!preparing&&stepIndex===0&&remaining===duration;
+ const nxt=nextWorkName(stepIndex+1);
+ if(idle){setHero('idle','움직임에 집중하세요.','운동과 휴식의 리듬은 타이머가 챙길게요.');$('phaseName').textContent=`첫 운동 · ${s.name}`}
+ else if(s.type==='work'){setHero('work',s.name,`운동 ${s.exercise}/${exercises.length} · 사이클 ${s.round}/${rounds}`);$('phaseName').textContent=nxt?`다음 · ${nxt}`:'마지막 운동이에요'}
+ else{setHero('rest',s.type==='rest'?'휴식':'사이클 휴식',s.type==='rest'?'호흡을 고르고 다음 운동을 준비하세요.':`사이클 ${s.round} 완료 · 다음 사이클을 준비하세요.`);$('phaseName').textContent=nxt?`다음 · ${nxt}`:'곧 끝나요'}
+ $('phaseTag').textContent=idle?'READY':(s.type==='work'?'WORK':(s.type==='rest'?'REST':'CYCLE REST'));
  $('clock').textContent=format(remaining);$('clockUnit').textContent='SECONDS REMAINING';
  const ratio=duration?remaining/duration:0;$('progressRing').style.strokeDashoffset=CIRC*(1-ratio);
- $('statusLine').textContent=s.type==='work'?`운동 ${s.exercise} · 사이클 ${s.round}/${rounds}`:(s.type==='rest'?'호흡을 고르고 다음 운동을 준비하세요.':'다음 사이클을 준비하세요.');
+ $('statusLine').textContent=idle?'시작하기를 눌러 운동을 시작하세요.':(running?'':'일시정지됨 · 계속하기를 누르면 이어서 진행합니다.');
  $('cycleStat').textContent=`${s.round} / ${rounds}`;
  const elapsed=steps.slice(0,stepIndex).reduce((a,x)=>a+x.secs,0)+(duration-remaining);
  $('progressStat').textContent=Math.floor(elapsed/(totalDuration()||1)*100)+'%';
