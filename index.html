@@ -51,17 +51,18 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 .timer-card{--phase:var(--lime);transition:background-color .35s,border-color .35s,color .35s}
 .timer-card.st-ready{--fill:#f2b705;--ink:#ffffff;--ink2:#ffffffe6;--veil:#0000001f;--veil2:#ffffff59}
 .timer-card.st-work{--fill:#e5484d;--ink:#ffffff;--ink2:#ffffffcc;--veil:#00000024;--veil2:#ffffff40}
+.timer-card.st-cycle{--fill:#3b9eff;--ink:#ffffff;--ink2:#ffffffe6;--veil:#0000001f;--veil2:#ffffff59}
 .timer-card.st-rest{--fill:#7cc734;--ink:#ffffff;--ink2:#ffffffe6;--veil:#0000001f;--veil2:#ffffff59}
-.timer-card:is(.st-ready,.st-work,.st-rest){background:var(--fill);border-color:var(--fill);color:var(--ink);box-shadow:0 18px 44px color-mix(in srgb,var(--fill) 35%,transparent)}
-.timer-card:is(.st-ready,.st-work,.st-rest) :is(.kicker,.sub,.clock-unit,.statusline,.stat label){color:var(--ink2)}
-.timer-card:is(.st-ready,.st-work,.st-rest) :is(.statusline strong,.stat strong,.phase-name,h1,.clock){color:var(--ink)}
-.timer-card:is(.st-ready,.st-work,.st-rest) .ring .progress{stroke:var(--ink)}
-.timer-card:is(.st-ready,.st-rest){text-shadow:0 1px 2px #0000002e}.timer-card:is(.st-ready,.st-rest) .primary{text-shadow:none}
-.timer-card:is(.st-ready,.st-work,.st-rest) .ring .track{stroke:var(--veil2)}
-.timer-card:is(.st-ready,.st-work,.st-rest) .phase-tag{background:var(--veil2);color:var(--ink)}
-.timer-card:is(.st-ready,.st-work,.st-rest) .stat{background:var(--veil)}
-.timer-card:is(.st-ready,.st-work,.st-rest) :is(.secondary,.iconbtn){background:var(--veil);border:1px solid var(--veil2);color:var(--ink)}
-.timer-card:is(.st-ready,.st-work,.st-rest) .primary{background:var(--ink);color:var(--fill)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle){background:var(--fill);border-color:var(--fill);color:var(--ink);box-shadow:0 18px 44px color-mix(in srgb,var(--fill) 35%,transparent)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) :is(.kicker,.sub,.clock-unit,.statusline,.stat label){color:var(--ink2)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) :is(.statusline strong,.stat strong,.phase-name,h1,.clock){color:var(--ink)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) .ring .progress{stroke:var(--ink)}
+.timer-card:is(.st-ready,.st-rest,.st-cycle){text-shadow:0 1px 2px #0000002e}.timer-card:is(.st-ready,.st-rest,.st-cycle) .primary{text-shadow:none}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) .ring .track{stroke:var(--veil2)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) .phase-tag{background:var(--veil2);color:var(--ink)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) .stat{background:var(--veil)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) :is(.secondary,.iconbtn){background:var(--veil);border:1px solid var(--veil2);color:var(--ink)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) .primary{background:var(--ink);color:var(--fill)}
 #heroTitle{transition:font-size .2s}.timer-card:not(.st-idle) #heroTitle{font-size:clamp(34px,9.5vw,50px);margin-top:12px}
 .timer-card:not(.st-idle) #heroSub{font-size:15px}
 .clock{font-size:clamp(78px,21vw,108px)!important}.clock-wrap{width:min(80vw,340px)!important;max-width:340px}.clock-unit{font-size:13px}
@@ -165,7 +166,7 @@ function renderPlan(){
  $('nowName').textContent=$('heroTitle').textContent;$('nowClock').textContent=$('clock').textContent;$('nowLabel').textContent=finished?'운동 완료':(running||preparing?'진행 중':'현재 단계');
 }
 function remainingTotal(){return steps.slice(stepIndex).reduce((a,s)=>a+s.secs,0)-(duration-remaining)}
-function setHero(state,title,sub){const c=$('timerCard');c.classList.remove('st-idle','st-ready','st-work','st-rest','st-done');c.classList.add('st-'+state);$('heroTitle').textContent=title;$('heroSub').textContent=sub}
+function setHero(state,title,sub){const c=$('timerCard');c.classList.remove('st-idle','st-ready','st-work','st-rest','st-cycle','st-done');c.classList.add('st-'+state);$('heroTitle').textContent=title;$('heroSub').textContent=sub}
 function nextWorkName(from){const n=steps.slice(from).find(x=>x.type==='work');return n?n.name:null}
 function render(){
  if(preparing){
@@ -183,7 +184,8 @@ function render(){
  const nxt=nextWorkName(stepIndex+1);
  if(idle){setHero('idle','움직임에 집중하세요.','운동과 휴식의 리듬은 타이머가 챙길게요.');$('phaseName').textContent=`첫 운동 · ${s.name}`}
  else if(s.type==='work'){setHero('work',s.name,`운동 ${s.exercise}/${exercises.length} · 사이클 ${s.round}/${rounds}`);$('phaseName').textContent=nxt?`다음 · ${nxt}`:'마지막 운동이에요'}
- else{setHero('rest',s.type==='rest'?'휴식':'사이클 휴식',s.type==='rest'?'호흡을 고르고 다음 운동을 준비하세요.':`사이클 ${s.round} 완료 · 다음 사이클을 준비하세요.`);$('phaseName').textContent=nxt?`다음 · ${nxt}`:'곧 끝나요'}
+ else if(s.type==='rest'){setHero('rest','휴식','호흡을 고르고 다음 운동을 준비하세요.');$('phaseName').textContent=nxt?`다음 · ${nxt}`:'곧 끝나요'}
+ else{setHero('cycle',`${s.round} 사이클 완료!`,`사이클 휴식 · 다음은 ${s.round+1}/${rounds} 사이클이에요.`);$('phaseName').textContent=nxt?`다음 · ${nxt}`:'곧 끝나요'}
  $('phaseTag').textContent=idle?'READY':(s.type==='work'?'WORK':(s.type==='rest'?'REST':'CYCLE REST'));
  $('clock').textContent=format(remaining);$('clockUnit').textContent='SECONDS REMAINING';
  const ratio=duration?remaining/duration:0;$('progressRing').style.strokeDashoffset=CIRC*(1-ratio);
