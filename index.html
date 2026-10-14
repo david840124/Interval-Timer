@@ -44,8 +44,8 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 .routine-head{display:flex;align-items:center;gap:12px;margin-bottom:16px}.back-btn{width:42px;height:42px;flex-shrink:0;display:grid;place-items:center;background:var(--panel2);border:1px solid var(--line);color:var(--text);border-radius:12px;font-size:22px}.routine-head h2{margin:4px 0 0;font-size:22px;letter-spacing:-.03em}
 .routine-now{display:flex;align-items:center;justify-content:space-between;gap:12px;background:#c8fa650d;border:1px solid #c8fa6566;border-radius:16px;padding:14px 16px;margin-bottom:12px}.routine-now span{color:var(--muted);font-size:12px}.routine-now strong{display:block;font-size:16px;margin-top:4px}.routine-now .now-clock{font-size:26px;font-weight:850;font-variant-numeric:tabular-nums;letter-spacing:-.04em}
 .routine-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin-bottom:16px}.routine-view{max-width:720px;margin:0 auto}
-.app{padding-top:16px}
-.app{padding-top:16px}
+.app{padding-top:calc(16px + env(safe-area-inset-top, 0px));padding-bottom:calc(32px + env(safe-area-inset-bottom, 0px));padding-left:max(13px, env(safe-area-inset-left, 0px));padding-right:max(13px, env(safe-area-inset-right, 0px))}
+.app{padding-top:calc(16px + env(safe-area-inset-top, 0px));padding-bottom:calc(32px + env(safe-area-inset-bottom, 0px));padding-left:max(13px, env(safe-area-inset-left, 0px));padding-right:max(13px, env(safe-area-inset-right, 0px))}
 </style>
 </head>
 <body>
