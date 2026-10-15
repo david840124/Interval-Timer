@@ -67,6 +67,22 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 .timer-card:not(.st-idle) #heroSub{font-size:15px}
 .clock{font-size:clamp(78px,21vw,108px)!important}.clock-wrap{width:min(80vw,340px)!important;max-width:340px}.clock-unit{font-size:13px}
 @media (prefers-reduced-motion:reduce){.timer-card,#heroTitle{transition:none}}
+
+[hidden]{display:none!important}
+/* 상단: 제목 + 다음 단계 버튼 */
+.hero-row{display:flex;align-items:center;justify-content:space-between;gap:14px}.hero-text{min-width:0;flex:1}
+.skip-btn{flex-shrink:0;width:64px;height:64px;display:grid;place-items:center;border-radius:18px;background:transparent;border:2px solid currentColor;color:var(--text);transition:transform .12s,background .2s}
+.skip-btn svg{width:28px;height:28px;fill:currentColor}.skip-btn:active{transform:scale(.94)}.skip-btn:hover{background:#ffffff14}.skip-btn:focus-visible{outline:3px solid currentColor;outline-offset:3px}
+.timer-card:not(.st-idle) #heroSub{border-left:4px solid currentColor;padding-left:10px;line-height:1.3}
+/* 하단: 통계 한 묶음 + 버튼 2개 */
+.summary{display:grid;grid-template-columns:repeat(3,1fr);gap:0;margin-top:auto;padding-top:0;background:#11151d;border-radius:16px;overflow:hidden}
+.timer-card .summary{margin-top:22px}
+.summary .stat{background:transparent!important;border-radius:0;padding:14px 8px;text-align:center;position:relative}
+.summary .stat+.stat::before{content:"";position:absolute;left:0;top:22%;bottom:22%;width:1px;background:currentColor;opacity:.18}
+.summary .stat strong{font-size:22px}
+.controls{grid-template-columns:1fr 1fr;padding-top:12px!important;margin-top:0}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) .summary{background:var(--veil)}
+.timer-card:is(.st-ready,.st-work,.st-rest,.st-cycle) .skip-btn{color:var(--ink)}
 </style>
 </head>
 <body>
@@ -76,16 +92,17 @@ footer{text-align:center;color:#6f7a8c;font-size:11px;margin-top:22px;line-heigh
 <div class="layout">
 <section class="card timer-card st-idle" id="timerCard">
 <div class="kicker">YOUR TRAINING SESSION</div>
-<h1 id="heroTitle">움직임에 집중하세요.</h1>
-<p class="sub" id="heroSub">운동과 휴식의 리듬은 타이머가 챙길게요.</p>
+<div class="hero-row"><div class="hero-text"><h1 id="heroTitle">움직임에 집중하세요.</h1>
+<p class="sub" id="heroSub">운동과 휴식의 리듬은 타이머가 챙길게요.</p></div>
+<button class="skip-btn" id="skipBtn" aria-label="다음 단계로 넘어가기" title="다음 단계로" hidden><svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="5" width="2.6" height="14" rx="1"/><path d="M9.5 5.6v12.8a.8.8 0 0 0 1.22.68l10.2-6.4a.8.8 0 0 0 0-1.36l-10.2-6.4a.8.8 0 0 0-1.22.68z"/></svg></button></div>
 <div class="phase"><div class="phase-name" id="phaseName">준비 완료</div><div class="phase-tag" id="phaseTag">READY</div></div>
 <div class="clock-wrap">
 <svg class="ring" viewBox="0 0 200 200" aria-hidden="true"><circle class="track" cx="100" cy="100" r="88"/><circle class="progress" id="progressRing" cx="100" cy="100" r="88" stroke-dasharray="552.92" stroke-dashoffset="0"/></svg>
 <div style="text-align:center"><div class="clock" id="clock">00:20</div><div class="clock-unit" id="clockUnit">SECONDS REMAINING</div></div>
 </div>
 <div class="statusline" id="statusLine">시작 버튼을 눌러 운동을 시작하세요.</div>
-<div class="controls"><button class="btn primary" id="startBtn">▶ 시작하기</button><button class="btn secondary" id="resetBtn">↺ 처음부터</button><button class="iconbtn" id="skipBtn" aria-label="다음 단계" title="다음 단계">»</button></div>
 <div class="summary"><div class="stat"><label>현재 사이클</label><strong id="cycleStat">1 / 4</strong></div><div class="stat"><label>전체 진행</label><strong id="progressStat">0%</strong></div><div class="stat"><label>총 운동 시간</label><strong id="totalStat">06:00</strong></div></div>
+<div class="controls"><button class="btn primary" id="startBtn">▶ 시작하기</button><button class="btn secondary" id="resetBtn">↺ 처음부터</button></div>
 </section>
 <section class="card config-card">
 <div class="section-head"><div><div class="kicker">CUSTOMIZE</div><h2 style="margin-top:6px">운동 구성</h2></div><button class="tiny-btn" id="exampleBtn">예시 불러오기</button></div>
@@ -166,7 +183,7 @@ function renderPlan(){
  $('nowName').textContent=$('heroTitle').textContent;$('nowClock').textContent=$('clock').textContent;$('nowLabel').textContent=finished?'운동 완료':(running||preparing?'진행 중':'현재 단계');
 }
 function remainingTotal(){return steps.slice(stepIndex).reduce((a,s)=>a+s.secs,0)-(duration-remaining)}
-function setHero(state,title,sub){const c=$('timerCard');c.classList.remove('st-idle','st-ready','st-work','st-rest','st-cycle','st-done');c.classList.add('st-'+state);$('heroTitle').textContent=title;$('heroSub').textContent=sub}
+function setHero(state,title,sub){const c=$('timerCard');$('skipBtn').hidden=(state==='idle'||state==='done');c.classList.remove('st-idle','st-ready','st-work','st-rest','st-cycle','st-done');c.classList.add('st-'+state);$('heroTitle').textContent=title;$('heroSub').textContent=sub}
 function nextWorkName(from){const n=steps.slice(from).find(x=>x.type==='work');return n?n.name:null}
 function render(){
  if(preparing){
@@ -265,7 +282,7 @@ function reset(){clearTimeout(speakTimer);running=false;finished=false;preparing
 function refreshPlanIfIdle(){if(running)return;reset()}
 $('startBtn').addEventListener('click',startPause);
 $('resetBtn').addEventListener('click',reset);
-$('skipBtn').addEventListener('click',()=>{if(finished)return;if(running){cancelAnimationFrame(raf);lastTick=0}beginStep(stepIndex+1,true);if(running)raf=requestAnimationFrame(tick)});
+$('skipBtn').addEventListener('click',()=>{if(finished)return;if(running){cancelAnimationFrame(raf);lastTick=0}clearTimeout(speakTimer);if(preparing){preparing=false;prepRemaining=0;beginStep(0,true)}else beginStep(stepIndex+1,true);if(running)raf=requestAnimationFrame(tick)});
 $('addBtn').addEventListener('click',()=>{exercises.push({name:`운동 ${exercises.length+1}`,work:20,rest:10});renderExercises();saveSettings();refreshPlanIfIdle()});
 $('rounds').addEventListener('change',()=>{saveSettings();refreshPlanIfIdle()});$('cycleRest').addEventListener('change',()=>{saveSettings();refreshPlanIfIdle()});
 $('voiceToggle').addEventListener('change',()=>{voice=$('voiceToggle').checked;saveSettings();if(!voice&&'speechSynthesis'in window)speechSynthesis.cancel()});
